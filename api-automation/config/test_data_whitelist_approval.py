@@ -129,7 +129,47 @@ WHITELIST_APPROVAL_TEST_CASES = [
             }
         ],
         "tags": ["negative", "validation", "admin"]
-    }
+    },
+    {
+    "test_id": "TC_Whitelist_Approve_09",
+    "description": "Reject an already approved user",
+    "data": {
+        "user_id": "{approved_user_id}",
+        "status": "rejected",
+        "reason": "Change of decision"
+    },
+    "expected_status": 200,
+    "expected_success": True,
+    "expected_message": "Whitelist audit created successfully",
+    "tags": ["positive", "admin", "reverse_status"]
+},
+{
+    "test_id": "TC_Whitelist_Approve_10",
+    "description": "Approve a previously rejected user",
+    "data": {
+        "user_id": "{rejected_user_id}",
+        "status": "approved",
+        "reason": "Re-evaluation approved"
+    },
+    "expected_status": 200,
+    "expected_success": True,
+    "expected_message": "Whitelist audit created successfully",
+    "tags": ["positive", "admin", "reverse_status"]
+},
+{
+    "test_id": "TC_Whitelist_Approve_11",
+    "description": "Approve a previously rejected user",
+    "data": {
+        "user_id": "{rejected_user_id}",
+        "status": "approved",
+        "reason": "Re-evaluation approved"
+    },
+    "expected_status": 200,
+    "expected_success": True,
+    "expected_message": "Whitelist audit created successfully"
+}
+
+
 ]
 
 # Valid status options
