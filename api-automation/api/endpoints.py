@@ -37,6 +37,17 @@ class Endpoints:
     WHITELIST_AUDIT = "/whitelist-audit/" 
     WHITELIST_APPROVE = "/whitelist-audit/{id}/approve"  # If exists
     WHITELIST_REJECT = "/whitelist-audit/{id}/reject"    # If exists
+
+    PRODUCTS = "/products"  # Add this line
+    
+    # Techniques
+    TECHNIQUES = "/techniques/"
+    
+    # Files
+    FILES = "/files/"
+    
+    # Units
+    UNITS = "/units/"
     
     # Helper methods
     @staticmethod

@@ -67,11 +67,10 @@ class TestTechniquesAddAPI:
         }
         
         print(f"   Adding technique: {unique_name}")
-        print(f"   Request data: {json.dumps(request_data, indent=2)}")
         
         response = self.client.post(Endpoints.TECHNIQUES, json=request_data)
         
-        print(f"   Status: {response.status_code}")
+        print(f"   Status: {response.status_code} (expected: 201)")
         
         # Parse response
         data = {}
@@ -80,21 +79,17 @@ class TestTechniquesAddAPI:
                 data = response.json()
             except json.JSONDecodeError:
                 print(f"   ❌ Response is not valid JSON: {response.text[:200]}")
-                return  # Don't fail, just report
+                pytest.fail("Response is not valid JSON")
         
         print(f"   Success: {data.get('success')}")
         print(f"   Message: {data.get('message')}")
         
-        # For successful creation
-        if response.status_code == 200:
+        # YOUR API RETURNS 201, NOT 200
+        if response.status_code == 201:
             if data.get("success"):
                 print(f"   ✓ Technique creation successful")
                 
-                # Check message
-                if "message" in data:
-                    print(f"   Message: {data['message']}")
-                
-                # Verify response structure
+                # Check response data
                 if "data" in data:
                     created_techniques = data["data"]
                     if isinstance(created_techniques, list):
@@ -109,11 +104,13 @@ class TestTechniquesAddAPI:
                                 print(f"   Is duplicate: {technique['is_duplicate']}")
             else:
                 print(f"   ⚠ Request unsuccessful: {data.get('message')}")
-        
+                pytest.fail(f"Request was not successful: {data.get('message')}")
         elif response.status_code == 401:
             print(f"   ❌ Unauthorized - Admin token may be invalid")
+            pytest.fail("Unauthorized access")
         elif response.status_code == 403:
             print(f"   ❌ Forbidden - Admin may not have permission")
+            pytest.fail("Forbidden access")
         elif response.status_code == 422:
             # Validation error
             print(f"   ⚠ Validation error: {data.get('message', 'No message')}")
@@ -122,6 +119,7 @@ class TestTechniquesAddAPI:
                     print(f"     - {error.get('field')}: {error.get('message')}")
         else:
             print(f"   ❌ Unexpected status: {response.status_code}")
+            pytest.fail(f"Unexpected status code: {response.status_code}")
     
     @pytest.mark.techniques
     @pytest.mark.add
@@ -169,12 +167,12 @@ class TestTechniquesAddAPI:
         
         print(f"   Status: {response.status_code}")
         
-        if response.status_code == 200:
+        if response.status_code == 201:
             data = response.json()
             if data.get("success"):
                 print(f"   ✓ Success: {data.get('message')}")
                 
-                # Check response data
+                # Store created IDs for cleanup
                 if "data" in data:
                     created_techniques = data["data"]
                     print(f"   ✓ Created {len(created_techniques)} techniques")
@@ -185,8 +183,10 @@ class TestTechniquesAddAPI:
                             print(f"     - {tech.get('name', 'N/A')} (ID: {tech['id']})")
             else:
                 print(f"   ⚠ Request failed: {data.get('message')}")
+                pytest.fail(f"Request failed: {data.get('message')}")
         else:
             print(f"   ❌ Failed with status: {response.status_code}")
+            pytest.fail(f"Failed with status code: {response.status_code}")
     
     @pytest.mark.techniques
     @pytest.mark.add
@@ -219,7 +219,7 @@ class TestTechniquesAddAPI:
         print(f"   Creating first technique: {unique_name}")
         response1 = self.client.post(Endpoints.TECHNIQUES, json=create_data)
         
-        if response1.status_code == 200:
+        if response1.status_code == 201:
             first_data = response1.json()
             if first_data.get("data") and len(first_data["data"]) > 0:
                 first_id = first_data["data"][0]["id"]
@@ -231,6 +231,9 @@ class TestTechniquesAddAPI:
         else:
             print(f"   ⚠ Could not create first technique: {response1.status_code}")
             return
+        
+        # Wait a moment to ensure first technique is saved
+        time.sleep(1)
         
         # Try to create duplicate
         duplicate_data = {
@@ -255,7 +258,7 @@ class TestTechniquesAddAPI:
         
         print(f"   Status: {response2.status_code}")
         
-        if response2.status_code == 200:
+        if response2.status_code == 201:
             data = response2.json()
             print(f"   Message: {data.get('message')}")
             
@@ -270,6 +273,8 @@ class TestTechniquesAddAPI:
                         print(f"   ✓ Correctly identified as duplicate")
                     else:
                         print(f"   ⚠ Created new technique instead of marking as duplicate")
+                else:
+                    print(f"   ⚠ No is_duplicate flag in response")
         
         elif response2.status_code == 422:
             # Some APIs return validation error for duplicates
@@ -293,12 +298,45 @@ class TestTechniquesAddAPI:
         # Prepare request data
         request_data = test_case["data"].copy()
         
-        # Generate unique names for techniques to avoid conflicts
+        # Generate unique names for techniques to avoid conflicts (only for creation tests)
         if "techniques" in request_data:
             for i, technique in enumerate(request_data["techniques"]):
                 if "name" in technique:
-                    # Add unique suffix for positive test cases
-                    if test_case.get("expected_status") == 200:
+                    # Only make unique for actual creation tests, not for duplicate test
+                    # For duplicate test (TC_TA_05), we need to use a specific name
+                    if test_id == "TC_TA_05":
+                        # For duplicate test, use the specific name from test data
+                        # First create it, then try to duplicate
+                        original_name = technique["name"]
+                        # Actually create it first
+                        create_first = {
+                            "techniques": [{
+                                "name": original_name,
+                                "description": "Original for duplicate test",
+                                "parent_name": None,
+                                "is_active": True,
+                                "values": [
+                                    {
+                                        "language_code": "en",
+                                        "name": "Original"
+                                    }
+                                ]
+                            }]
+                        }
+                        print(f"   Creating original technique: {original_name}")
+                        response1 = self.client.post(Endpoints.TECHNIQUES, json=create_first)
+                        if response1.status_code == 201:
+                            data1 = response1.json()
+                            if data1.get("data") and len(data1["data"]) > 0:
+                                tech_id = data1["data"][0]["id"]
+                                self.created_technique_ids.append(tech_id)
+                                print(f"   ✓ Original created with ID: {tech_id}")
+                        
+                        # Wait a moment
+                        time.sleep(1)
+                        # Keep the same name for duplicate attempt
+                    elif test_case.get("expected_status") in [200, 201]:
+                        # For other positive tests, make unique
                         base_name = technique["name"]
                         unique_name = f"{base_name}-{str(uuid.uuid4())[:8]}"
                         request_data["techniques"][i]["name"] = unique_name
@@ -312,16 +350,26 @@ class TestTechniquesAddAPI:
         # Make request
         response = self.client.post(Endpoints.TECHNIQUES, json=request_data)
         
-        print(f"   Status: {response.status_code} (expected: {test_case['expected_status']})")
+        # UPDATE: Your API returns 201 for success, not 200
+        # Adjust expected status for success cases
+        expected_status = test_case["expected_status"]
+        if expected_status == 200 and test_case.get("expected_success", False):
+            expected_status = 201
+        
+        print(f"   Status: {response.status_code} (expected: {expected_status})")
         
         # Verify status code
-        expected_status = test_case["expected_status"]
         actual_status = response.status_code
         
-        if actual_status != expected_status:
+        # For now, let's accept both 200 and 201 for success
+        is_success = actual_status in [200, 201] and expected_status in [200, 201]
+        is_error = actual_status == expected_status
+        
+        if not (is_success or is_error):
             print(f"   ⚠ Status mismatch: expected {expected_status}, got {actual_status}")
         
         # Parse response
+        data = {}
         if response.text:
             try:
                 data = response.json()
@@ -333,6 +381,8 @@ class TestTechniquesAddAPI:
                     
                     if expected_success != actual_success:
                         print(f"   ⚠ Success mismatch: expected {expected_success}, got {actual_success}")
+                    else:
+                        print(f"   ✓ Success: {actual_success}")
                 
                 # Verify message if expected
                 if "expected_message" in test_case and "message" in data:
@@ -341,10 +391,12 @@ class TestTechniquesAddAPI:
                     
                     # For contains check
                     if expected_msg.lower() in actual_message.lower():
-                        print(f"   ✓ Message contains expected: {actual_message}")
+                        print(f"   ✓ Message contains expected text")
+                    else:
+                        print(f"   ⚠ Message mismatch. Got: {actual_message}")
                 
                 # Store created IDs for cleanup
-                if actual_status == 200 and data.get("success") and "data" in data:
+                if actual_status in [200, 201] and data.get("success") and "data" in data:
                     for technique in data["data"]:
                         if "id" in technique:
                             self.created_technique_ids.append(technique["id"])
@@ -366,7 +418,7 @@ class TestTechniquesAddAPI:
         request_data = {
             "techniques": [
                 {
-                    "name": "test-no-auth",
+                    "name": self.generate_unique_technique_name("test-no-auth"),
                     "description": "Test without auth",
                     "parent_name": None,
                     "is_active": True,
@@ -388,10 +440,14 @@ class TestTechniquesAddAPI:
         if response.status_code in [401, 403]:
             print(f"   ✓ Correctly rejected without authentication")
             if response.text:
-                data = response.json()
-                print(f"   Message: {data.get('message')}")
+                try:
+                    data = response.json()
+                    print(f"   Message: {data.get('message')}")
+                except:
+                    print(f"   Response: {response.text[:100]}")
         else:
             print(f"   ⚠ Expected 401/403 without auth, got {response.status_code}")
+            pytest.fail(f"Should require authentication, got {response.status_code}")
     
     @classmethod
     def teardown_class(cls):
@@ -402,7 +458,9 @@ class TestTechniquesAddAPI:
         
         if cls.created_technique_ids:
             print(f"   Created {len(cls.created_technique_ids)} techniques during tests")
-            print(f"   Technique IDs: {cls.created_technique_ids[:5]}")  # Show first 5 only
+            print(f"   Technique IDs: {cls.created_technique_ids[:10]}")  # Show first 10 only
+            if len(cls.created_technique_ids) > 10:
+                print(f"   ... and {len(cls.created_technique_ids) - 10} more")
         else:
             print(f"   No techniques created during tests")
         
