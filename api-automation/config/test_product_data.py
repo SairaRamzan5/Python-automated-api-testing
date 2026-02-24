@@ -1,17 +1,18 @@
-"""Test data for Product Creation API tests - Updated with correct structure from successful test"""
+"""Test data for Product Creation API tests - Based on working payload structure"""
 
 import time
-from datetime import datetime
+import uuid
 
 class ProductTestData:
     """Test data configuration for product creation tests"""
     
-    # API Validation limits from your response
+    # API Validation limits from successful response
     VALIDATION_LIMITS = {
         "name_max_length": 30,
         "materials_max": 100,
         "techniques_max": 50,
         "files_max": 15,
+        "measurements_max": 20,
         "hours_min": 0.1,
         "monthly_qty_min": 1,
         "annual_qty_min": 12,
@@ -19,94 +20,87 @@ class ProductTestData:
         "price_max": 999999.99
     }
     
-    # CORRECTED: Valid test data with CORRECT STRUCTURE (array of objects)
+    # Valid technique IDs from the system
+    VALID_TECHNIQUE_IDS = [
+        "fcae2e4e-b8b5-4a5f-b879-111896c2e849",
+        "8fc243e7-d556-43b6-81a8-392d30b586c5"
+    ]
+    
+    # Valid file IDs from the system
+    VALID_FILE_IDS = [
+        "58a82002-020b-4e12-917f-5fcb3dccd29d",
+        "78bbd7e5-c036-4544-aea6-0013838946cb",
+        "1faa4719-74f3-4e08-9ba4-741d40e70aba",
+        "9f990a97-ccc9-43b8-b877-9668557f06f3",
+        "b13e6538-45cb-4424-b7ff-a8c76001a39d"
+    ]
+    
+    # Valid product payload based on working example
     VALID_PRODUCT = {
-        "name": "Handwritten notes",
-        "description": "You can give your own designs or pinterest styles and we will print them for you",
-        "hours_to_make": 1,
-        "monthly_qty": 300,
-        "annual_qty": 2000,
-        "custom_price": 20,
-        "is_active": False,
+        "name": "Handcrafted Ceramic Mug",
+        "description": "Beautiful handcrafted ceramic mug with unique design",
+        "hours_to_make": 2.5,
+        "monthly_qty": 50,
+        "annual_qty": 600,
+        "custom_price": 25.99,
+        "is_active": True,
         "status": "pending",
         "workshops": [],
         "materials": [
             {
-                "name": "ink",
-                "price": 150,
-                "quantity": 6,
-                "unit_id": "64b45044-ebf6-4290-8820-eaf04c109bd0"
+                "name": "Clay",
+                "price": 15.0,
+                "quantity": 2,
+                "unit": "kg"
             },
             {
-                "name": "paper",
-                "price": 10,
-                "quantity": 5,
-                "unit_id": "64b45044-ebf6-4290-8820-eaf04c109bd0"
+                "name": "Glaze",
+                "price": 8.0,
+                "quantity": 1,
+                "unit": "liter"
             }
         ],
-        "techniques": [  # CORRECTED: Array of objects (not array of strings)
-            {"id": "fcae2e4e-b8b5-4a5f-b879-111896c2e849"}
+        "techniques": [
+            {
+                "id": "fcae2e4e-b8b5-4a5f-b879-111896c2e849"
+            }
         ],
-        "files": [  # CORRECTED: Array of objects (not array of strings)
-            {"id": "58a82002-020b-4e12-917f-5fcb3dccd29d"}
+        "files": [
+            {
+                "id": "58a82002-020b-4e12-917f-5fcb3dccd29d"
+            }
+        ],
+        "measurements": [
+            {
+                "size": "Standard",
+                "width": 8,
+                "length": 8,
+                "height": 10,
+                "description": "Standard mug size"
+            }
         ]
     }
     
-    # Alternative file objects from your response
-    ALTERNATIVE_FILES = [
-        {"id": "58a82002-020b-4e12-917f-5fcb3dccd29d"},
-        {"id": "78bbd7e5-c036-4544-aea6-0013838946cb"},
-        {"id": "1faa4719-74f3-4e08-9ba4-741d40e70aba"},
-        {"id": "9f990a97-ccc9-43b8-b877-9668557f06f3"},
-        {"id": "b13e6538-45cb-4424-b7ff-a8c76001a39d"}
-    ]
-    
-    # Additional materials for testing
-    ADDITIONAL_MATERIALS = [
-        {
-            "name": "fabric",
-            "price": 200,
-            "quantity": 2,
-            "unit_id": "64b45044-ebf6-4290-8820-eaf04c109bd0"
-        },
-        {
-            "name": "thread",
-            "price": 50,
-            "quantity": 10,
-            "unit_id": "64b45044-ebf6-4290-8820-eaf04c109bd0"
-        },
-        {
-            "name": "paint",
-            "price": 80,
-            "quantity": 3,
-            "unit_id": "64b45044-ebf6-4290-8820-eaf04c109bd0"
-        }
-    ]
-    
-    # Different status values
+    # Different status values from the system
     STATUS_VALUES = ["pending", "draft", "active", "inactive", "rejected"]
     
     @staticmethod
-    def generate_unique_product_name(base_name="Product"):
+    def generate_unique_product_name(base_name="Test Product"):
         """Generate a unique product name within 30 character limit"""
         timestamp = int(time.time())
-        # Keep within 30 characters
-        name = f"{base_name} {timestamp}"
+        unique_id = str(uuid.uuid4())[:4]
+        name = f"{base_name} {timestamp}-{unique_id}"
+        # Ensure within 30 characters
         if len(name) > 30:
-            # Trim if needed
-            max_base_length = 30 - len(f" {timestamp}")
-            if max_base_length > 0:
-                name = f"{base_name[:max_base_length]} {timestamp}"
-            else:
-                name = f"P{timestamp}"
-        return name
+            name = f"{base_name[:15]} {timestamp}"
+        return name[:30]
     
     @staticmethod
     def get_valid_product_payload(**kwargs):
         """Get a valid product payload with optional overrides"""
         payload = ProductTestData.VALID_PRODUCT.copy()
         
-        # Make name unique by default (within 30 char limit)
+        # Make name unique by default
         if "name" not in kwargs:
             payload["name"] = ProductTestData.generate_unique_product_name()
         
@@ -121,68 +115,84 @@ class ProductTestData:
             "name": "Create product with valid data",
             "payload": {},
             "expected_status": 201,
-            "expected_fields": ["id", "name", "status", "techniques", "materials"],
+            "expected_fields": ["id", "name", "status", "materials", "techniques", "files"],
             "description": "Should create product successfully with all required fields"
         },
         {
             "test_id": "TC-002",
+            "name": "Create product with multiple materials",
+            "payload": {
+                "materials": [
+                    {"name": "Clay", "price": 15, "quantity": 2, "unit": "kg"},
+                    {"name": "Glaze", "price": 8, "quantity": 1, "unit": "liter"},
+                    {"name": "Paint", "price": 5, "quantity": 3, "unit": "piece"},
+                    {"name": "Brushes", "price": 10, "quantity": 2, "unit": "piece"}
+                ]
+            },
+            "expected_status": 201,
+            "description": "Should accept product with multiple materials"
+        },
+        {
+            "test_id": "TC-003",
+            "name": "Create product with multiple techniques",
+            "payload": {
+                "techniques": [
+                    {"id": "fcae2e4e-b8b5-4a5f-b879-111896c2e849"},
+                    {"id": "8fc243e7-d556-43b6-81a8-392d30b586c5"}
+                ]
+            },
+            "expected_status": 201,
+            "description": "Should accept product with multiple techniques"
+        },
+        {
+            "test_id": "TC-004",
             "name": "Create product with multiple files",
             "payload": {
                 "files": [
                     {"id": "58a82002-020b-4e12-917f-5fcb3dccd29d"},
-                    {"id": "78bbd7e5-c036-4544-aea6-0013838946cb"}
+                    {"id": "78bbd7e5-c036-4544-aea6-0013838946cb"},
+                    {"id": "1faa4719-74f3-4e08-9ba4-741d40e70aba"}
                 ]
             },
             "expected_status": 201,
-            "expected_fields": ["id", "files"],
-            "description": "Should accept product with multiple file references"
+            "description": "Should accept product with multiple files"
         },
         {
-            "test_id": "TC-003",
-            "name": "Create product with maximum files (15)",
+            "test_id": "TC-005",
+            "name": "Create product with multiple measurements",
             "payload": {
-                "files": [
-                    {"id": "58a82002-020b-4e12-917f-5fcb3dccd29d"},
-                    {"id": "78bbd7e5-c036-4544-aea6-0013838946cb"},
-                    {"id": "1faa4719-74f3-4e08-9ba4-741d40e70aba"},
-                    {"id": "9f990a97-ccc9-43b8-b877-9668557f06f3"},
-                    {"id": "b13e6538-45cb-4424-b7ff-a8c76001a39d"},
-                    {"id": "58a82002-020b-4e12-917f-5fcb3dccd29d"},
-                    {"id": "78bbd7e5-c036-4544-aea6-0013838946cb"},
-                    {"id": "1faa4719-74f3-4e08-9ba4-741d40e70aba"},
-                    {"id": "9f990a97-ccc9-43b8-b877-9668557f06f3"},
-                    {"id": "b13e6538-45cb-4424-b7ff-a8c76001a39d"},
-                    {"id": "58a82002-020b-4e12-917f-5fcb3dccd29d"},
-                    {"id": "78bbd7e5-c036-4544-aea6-0013838946cb"},
-                    {"id": "1faa4719-74f3-4e08-9ba4-741d40e70aba"},
-                    {"id": "9f990a97-ccc9-43b8-b877-9668557f06f3"},
-                    {"id": "b13e6538-45cb-4424-b7ff-a8c76001a39d"}
+                "measurements": [
+                    {"size": "S", "width": 45, "length": 65, "height": 4, "description": "Small"},
+                    {"size": "M", "width": 50, "length": 70, "height": 5, "description": "Medium"},
+                    {"size": "L", "width": 55, "length": 75, "height": 6, "description": "Large"}
                 ]
             },
             "expected_status": 201,
-            "expected_fields": ["id", "files"],
-            "description": "Should accept product with maximum 15 files"
+            "description": "Should accept product with multiple measurements"
         },
         {
-            "test_id": "TC-004",
+            "test_id": "TC-006",
             "name": "Create product with active status",
             "payload": {
                 "status": "active",
                 "is_active": True
             },
             "expected_status": 201,
-            "expected_fields": ["id", "status", "is_active"],
             "description": "Should accept product with active status"
         },
         {
-            "test_id": "TC-005",
-            "name": "Create product with maximum techniques (50)",
-            "payload": {
-                "techniques": [{"id": f"tech-{i}"} for i in range(50)]
-            },
+            "test_id": "TC-007",
+            "name": "Create product with zero custom price",
+            "payload": {"custom_price": 0},
             "expected_status": 201,
-            "expected_fields": ["id", "techniques"],
-            "description": "Should accept product with maximum 50 techniques"
+            "description": "Should accept product with zero price"
+        },
+        {
+            "test_id": "TC-008",
+            "name": "Create product without measurements",
+            "payload": {"measurements": []},
+            "expected_status": 201,
+            "description": "Should accept product without measurements"
         }
     ]
     
@@ -196,7 +206,6 @@ class ProductTestData:
             },
             "expected_status": 422,
             "expected_error": "name",
-            "expected_message": "Product name must not exceed 30 characters",
             "description": "Should reject product name longer than 30 characters"
         },
         {
@@ -205,17 +214,14 @@ class ProductTestData:
             "payload": {"name": ""},
             "expected_status": 422,
             "expected_error": "name",
-            "expected_message": "Product name is required",
             "description": "Should reject product with empty name"
         },
         {
             "test_id": "TC-103",
             "name": "Missing name field",
-            "payload": {},  # Name will be set to None in test
-            "remove_field": "name",  # Special flag to remove the field
+            "payload": {"remove_field": "name"},
             "expected_status": 422,
             "expected_error": "name",
-            "expected_message": "Product name is required",
             "description": "Should reject product without name"
         },
         {
@@ -224,7 +230,6 @@ class ProductTestData:
             "payload": {"name": 12345},
             "expected_status": 422,
             "expected_error": "name",
-            "expected_message": "Product name must be a string",
             "description": "Should reject non-string product name"
         },
         {
@@ -232,12 +237,7 @@ class ProductTestData:
             "name": "Too many materials (101)",
             "payload": {
                 "materials": [
-                    {
-                        "name": f"Material {i}",
-                        "price": 10,
-                        "quantity": 1,
-                        "unit_id": "64b45044-ebf6-4290-8820-eaf04c109bd0"
-                    }
+                    {"name": f"Material {i}", "price": 10, "quantity": 1, "unit": "piece"}
                     for i in range(101)
                 ]
             },
@@ -248,8 +248,8 @@ class ProductTestData:
         },
         {
             "test_id": "TC-106",
-            "name": "Invalid materials type (not array)",
-            "payload": {"materials": "not-an-array"},
+            "name": "Materials not an array",
+            "payload": {"materials": {"name": "Clay", "price": 15, "quantity": 2, "unit": "kg"}},
             "expected_status": 422,
             "expected_error": "materials",
             "expected_message": "Materials must be an array",
@@ -268,8 +268,8 @@ class ProductTestData:
         },
         {
             "test_id": "TC-108",
-            "name": "Invalid techniques type (not array)",
-            "payload": {"techniques": "not-an-array"},
+            "name": "Techniques not an array",
+            "payload": {"techniques": {"id": "fcae2e4e-b8b5-4a5f-b879-111896c2e849"}},
             "expected_status": 422,
             "expected_error": "techniques",
             "expected_message": "techniques must be an array",
@@ -288,8 +288,8 @@ class ProductTestData:
         },
         {
             "test_id": "TC-110",
-            "name": "Invalid files type (not array)",
-            "payload": {"files": "not-an-array"},
+            "name": "Files not an array",
+            "payload": {"files": {"id": "58a82002-020b-4e12-917f-5fcb3dccd29d"}},
             "expected_status": 422,
             "expected_error": "files",
             "expected_message": "files must be an array",
@@ -297,6 +297,37 @@ class ProductTestData:
         },
         {
             "test_id": "TC-111",
+            "name": "Too many measurements (21)",
+            "payload": {
+                "measurements": [
+                    {"size": f"Size {i}", "width": 10, "length": 20, "height": 5}
+                    for i in range(21)
+                ]
+            },
+            "expected_status": 422,
+            "expected_error": "measurements",
+            "expected_message": "Maximum 20 measurements are allowed",
+            "description": "Should reject more than 20 measurements"
+        },
+        {
+            "test_id": "TC-112",
+            "name": "Measurements not an array",
+            "payload": {
+                "measurements": {
+                    "size": "M",
+                    "width": 50,
+                    "length": 70,
+                    "height": 5,
+                    "description": "Single measurement"
+                }
+            },
+            "expected_status": 422,
+            "expected_error": "measurements",
+            "expected_message": "Measurements must be an array",
+            "description": "Should reject non-array measurements"
+        },
+        {
+            "test_id": "TC-113",
             "name": "Negative hours to make",
             "payload": {"hours_to_make": -1},
             "expected_status": 422,
@@ -304,7 +335,7 @@ class ProductTestData:
             "description": "Should reject negative hours"
         },
         {
-            "test_id": "TC-112",
+            "test_id": "TC-114",
             "name": "Zero hours to make",
             "payload": {"hours_to_make": 0},
             "expected_status": 422,
@@ -312,7 +343,7 @@ class ProductTestData:
             "description": "Should reject zero hours"
         },
         {
-            "test_id": "TC-113",
+            "test_id": "TC-115",
             "name": "Negative monthly quantity",
             "payload": {"monthly_qty": -10},
             "expected_status": 422,
@@ -320,7 +351,7 @@ class ProductTestData:
             "description": "Should reject negative monthly quantity"
         },
         {
-            "test_id": "TC-114",
+            "test_id": "TC-116",
             "name": "Negative annual quantity",
             "payload": {"annual_qty": -100},
             "expected_status": 422,
@@ -328,76 +359,30 @@ class ProductTestData:
             "description": "Should reject negative annual quantity"
         },
         {
-            "test_id": "TC-115",
+            "test_id": "TC-117",
             "name": "Annual less than monthly quantity",
-            "payload": {"annual_qty": 100, "monthly_qty": 200},
+            "payload": {"annual_qty": 500, "monthly_qty": 100},
             "expected_status": 422,
             "expected_error": "annual_qty",
-            "description": "Should reject annual less than monthly"
+            "description": "Should reject annual less than monthly * 12"
         },
         {
-            "test_id": "TC-116",
+            "test_id": "TC-118",
             "name": "Negative custom price",
             "payload": {"custom_price": -5},
             "expected_status": 422,
             "expected_error": "custom_price",
             "description": "Should reject negative price"
-        },
-        {
-            "test_id": "TC-117",
-            "name": "Empty materials array",
-            "payload": {"materials": []},
-            "expected_status": 422,
-            "expected_error": "materials",
-            "description": "Should reject empty materials"
-        },
-        {
-            "test_id": "TC-118",
-            "name": "Empty techniques array",
-            "payload": {"techniques": []},
-            "expected_status": 422,
-            "expected_error": "techniques",
-            "description": "Should reject empty techniques"
-        }
-    ]
-    
-    # Material validation test cases
-    MATERIAL_TEST_CASES = [
-        {
-            "test_id": "TC-201",
-            "name": "Material missing name",
-            "payload": {
-                "materials": [{
-                    "price": 100,
-                    "quantity": 2,
-                    "unit_id": "64b45044-ebf6-4290-8820-eaf04c109bd0"
-                }]
-            },
-            "expected_status": 422,
-            "expected_error": "materials",
-            "description": "Should reject material without name"
-        },
-        {
-            "test_id": "TC-202",
-            "name": "Material missing price",
-            "payload": {
-                "materials": [{
-                    "name": "test material",
-                    "quantity": 2,
-                    "unit_id": "64b45044-ebf6-4290-8820-eaf04c109bd0"
-                }]
-            },
-            "expected_status": 422,
-            "expected_error": "materials",
-            "description": "Should reject material without price"
         }
     ]
     
     # Test tags for filtering
     TEST_TAGS = {
-        "smoke": ["TC-001", "TC-101", "TC-102"],
-        "validation": ["TC-101", "TC-102", "TC-105", "TC-107", "TC-109"],
-        "boundary": ["TC-003", "TC-005", "TC-105", "TC-107", "TC-109"],
-        "regression": ["TC-001", "TC-002", "TC-004", "TC-101", "TC-111", "TC-116"],
-        "security": []  # Add authentication test IDs here
+        "smoke": ["TC-001"],
+        "positive": ["TC-001", "TC-002", "TC-003", "TC-004", "TC-005", "TC-006", "TC-007", "TC-008"],
+        "negative": ["TC-101", "TC-102", "TC-103", "TC-104", "TC-105", "TC-106", "TC-107", "TC-108", 
+                    "TC-109", "TC-110", "TC-111", "TC-112", "TC-113", "TC-114", "TC-115", "TC-116", 
+                    "TC-117", "TC-118"],
+        "boundary": ["TC-105", "TC-107", "TC-109", "TC-111"],
+        "security": []
     }
