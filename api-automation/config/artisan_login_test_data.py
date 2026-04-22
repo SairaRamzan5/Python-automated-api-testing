@@ -46,7 +46,7 @@ ARTISAN_LOGIN_TEST_CASES = [
         "description": "Login attempt before admin approval",
         "data": {},  # Will be dynamically populated
         "requires_non_approved_artisan": True,
-        "expected_status": 403,  # From Excel
+        "expected_status": 403,  
         "expected_success": False,
         "expected_message": "Access forbidden",
         "tags": ["negative", "approval"]
@@ -57,10 +57,10 @@ ARTISAN_LOGIN_TEST_CASES = [
         "test_id": "TC_Artisan_Login_03",
         "description": "Login with incorrect password",
         "data": {
-            "identifier": "+923231348372",  # From Excel (approved phone)
-            "password": "khanAli@9000"  # Wrong password from Excel
+            "identifier": "+923231348372",  #  (approved phone)
+            "password": "khanAli@9000"  # Wrong password 
         },
-        "expected_status": 401,  # From Excel
+        "expected_status": 401,  
         "expected_success": False,
         "expected_message": "unauthorized",
         "tags": ["negative", "security"]
@@ -71,10 +71,10 @@ ARTISAN_LOGIN_TEST_CASES = [
         "test_id": "TC_Artisan_Login_04",
         "description": "Login with unregistered phone",
         "data": {
-            "identifier": "+923231348343",  # From Excel (unregistered)
-            "password": "khanAli@9000"  # From Excel
+            "identifier": "+923231348343",  #  (unregistered)
+            "password": "khanAli@9000"  
         },
-        "expected_status": 401,  # From Excel
+        "expected_status": 401,  
         "expected_success": False,
         "expected_message": "unauthorized",
         "tags": ["negative", "security"]
@@ -85,12 +85,12 @@ ARTISAN_LOGIN_TEST_CASES = [
         "test_id": "TC_Artisan_Login_05",
         "description": "Login with blank phone number",
         "data": {
-            "identifier": "",  # From Excel
-            "password": "khanAli@969000"  # From Excel
+            "identifier": "",   
+            "password": "khanAli@969000"  
         },
-        "expected_status": 422,  # From Excel
+        "expected_status": 422,  
         "expected_success": False,
-        "expected_message": "unprocessible",  # From Excel
+        "expected_message": "unprocessible",   
         "validation_error": True,
         "tags": ["negative", "validation"]
     },
@@ -100,8 +100,8 @@ ARTISAN_LOGIN_TEST_CASES = [
         "test_id": "TC_Artisan_Login_06",
         "description": "Login with blank password",
         "data": {
-            "identifier": "+923048942431",  # Approved phone from Excel
-            "password": ""  # Blank from Excel
+            "identifier": "+923048942431",  # Approved phone 
+            "password": ""  # Blank 
         },
         "expected_status": 422,
         "expected_success": False,
@@ -130,8 +130,8 @@ ARTISAN_LOGIN_TEST_CASES = [
         "test_id": "TC_Artisan_Login_08",
         "description": "Multiple login attempts before approval",
         "data": {
-            "identifier": "+923233348372",  # From Excel TC_02
-            "password": "khanAli@969000"  # From Excel
+            "identifier": "+923233348372",  #  TC_02
+            "password": "khanAli@969000"   
         },
         "expected_status": 401,  # CHANGED: Actual response is 401, not 403
         "expected_success": False,
