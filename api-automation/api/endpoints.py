@@ -48,6 +48,14 @@ class Endpoints:
     
     # Units
     UNITS = "/units/"
+
+    WHITELIST_AUDIT = "/whitelist-audit/"
+    WHITELIST_APPROVE = "/whitelist-audit/{id}/approve"
+    WHITELIST_REJECT = "/whitelist-audit/{id}/reject"
+
+    # Product endpoints
+    PRODUCTS = "/products"
+    PRODUCT_STATUS = "/rbac/products/status"
     
     # Helper methods
     @staticmethod
